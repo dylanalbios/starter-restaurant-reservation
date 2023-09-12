@@ -17,7 +17,7 @@ async function list(req, res) {
   );
 
   res.json({ data: filteredReservations });
-};;
+};
 
 async function validateReservation(req, res, next) {
   const data = req.body.data;
