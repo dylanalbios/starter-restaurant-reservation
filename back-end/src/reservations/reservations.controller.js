@@ -12,12 +12,12 @@ async function list(req, res) {
 
   const reservations = await service.list(date, mobile_number);
 
-  const response = reservations.filter(
+  const filteredReservations = reservations.filter(
     (reservation) => reservation.status !== "finished"
   );
 
-  res.json({ date: response });
-};
+  res.json({ data: filteredReservations });
+};;
 
 async function validateReservation(req, res, next) {
   const data = req.body.data;
