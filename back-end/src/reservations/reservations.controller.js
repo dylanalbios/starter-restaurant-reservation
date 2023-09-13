@@ -19,6 +19,26 @@ async function list(req, res) {
   res.json({ data: filteredReservations });
 };
 
+/**
+ * Middleware to check if the request body contains a 'data' object.
+ * If the 'data' object is missing, it sends an error response.
+ */
+async function validateData(req, res, next) {
+  if (!req.body.data) {
+    return next({
+      status: 400,
+      message: "Body must include a request body data object",
+    });
+  }
+
+  next();
+}
+
+/**
+ * Middleware to validate the reservation data received in the request body.
+ * It ensures that all required fields are present and in the correct format.
+ * Sends an error response for any validation failure.
+ */
 async function validateReservation(req, res, next) {
   const data = req.body.data;
   const requiredFields = [
@@ -70,5 +90,5 @@ async function create(req, res) {
 
 module.exports = {
   list: [asyncErrorBoundary(list)],
-  create: [asyncErrorBoundary(validateReservation), asyncErrorBoundary(create)],
+  create: [asyncErrorBoundary(validateData), asyncErrorBoundary(validateReservation), asyncErrorBoundary(create)],
 };
