@@ -32,7 +32,7 @@ async function validateData(req, res, next) {
   }
 
   next();
-}
+};
 
 /**
  * Middleware to validate the reservation data received in the request body.
@@ -73,9 +73,65 @@ async function validateReservation(req, res, next) {
   }
 
   next();
-}
+};
 
+/**
+ * Middleware to validate a reservation's date and time.
+ * 
+ * Ensures:
+ * - The reservation isn't on a Tuesday (closed day).
+ * - The date/time isn't in the past.
+ * - The time falls within operating hours (10:30 AM - 10:30 PM).
+ * - Reservations are made at least an hour before closing.
+ * 
+ * Sends error messages for validation failures and calls `next()` if all checks pass.
+ */
+async function validateDate(req, res, next) {
+  const RESERVED_DATE_STRING = `${req.body.data.reservation_date}T${req.body.data.reservation_time}:00.000`;
+  const reservedDate = new Date(RESERVED_DATE_STRING);
+  const todaysDate = new Date();
 
+  // Helper to send error messages
+  const sendError = (message) => next({ status: 400, message });
+
+  if (reservedDate.getUTCDay() === 2) {
+    return sendError("'reservation_date' field: restaurant is closed on tuesday");
+  }
+
+  if (reservedDate < todaysDate) {
+    return sendError("'reservation_date' and 'reservation_time' field must be in the future");
+  }
+
+  const OPEN_HOUR = 10;
+  const OPEN_MINUTE = 30;
+  const CLOSE_HOUR = 22;
+  const CLOSE_MINUTE = 30;
+  const LAST_RESERVATION_HOUR = 21;
+  const LAST_RESERVATION_MINUTE = 30;
+
+  const isBeforeOpening = reservedDate.getHours() < OPEN_HOUR || 
+                         (reservedDate.getHours() === OPEN_HOUR && reservedDate.getMinutes() < OPEN_MINUTE);
+
+  const isAfterClosing = reservedDate.getHours() > CLOSE_HOUR || 
+                        (reservedDate.getHours() === CLOSE_HOUR && reservedDate.getMinutes() >= CLOSE_MINUTE);
+
+  const isLastReservationTime = reservedDate.getHours() > LAST_RESERVATION_HOUR ||
+                               (reservedDate.getHours() === LAST_RESERVATION_HOUR && reservedDate.getMinutes() > LAST_RESERVATION_MINUTE);
+
+  if (isBeforeOpening) {
+    return sendError("'reservation_time; field: restaurant is not open until 10:30AM");
+  }
+
+  if (isAfterClosing) {
+    return sendError("'reservation_time' field: restaurant is closed after 10:30PM");
+  }
+
+  if (isLastReservationTime) {
+    return sendError("'reservation_time' field: reservation must be made at least an hour before closing (10:30PM)");
+  }
+
+  next();
+};
 
 /**
  * Create handler for reservation resources
@@ -90,5 +146,5 @@ async function create(req, res) {
 
 module.exports = {
   list: [asyncErrorBoundary(list)],
-  create: [asyncErrorBoundary(validateData), asyncErrorBoundary(validateReservation), asyncErrorBoundary(create)],
+  create: [asyncErrorBoundary(validateDate), asyncErrorBoundary(validateData), asyncErrorBoundary(validateReservation), asyncErrorBoundary(create)],
 };
