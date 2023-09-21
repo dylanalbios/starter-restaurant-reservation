@@ -18,7 +18,7 @@ function list(date, mobile_number) {
     }
 
     if (mobile_number) {
-        return knex("reservations")
+        return knex(tableName)
           .whereRaw(
             "translate(mobile_number, '() -', '') like ?",
             `%${mobile_number.replace(/\D/g, "")}%`
