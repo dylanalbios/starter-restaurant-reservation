@@ -94,7 +94,7 @@ async function validateDate(req, res, next) {
   // Helper to send error messages
   const sendError = (message) => next({ status: 400, message });
 
-  if (reservedDate.getUTCDay() === 2) {
+  if (reservedDate.getDay() === 2) {
     return sendError("'reservation_date' field: restaurant is closed on tuesday");
   }
 
@@ -129,6 +129,10 @@ async function validateDate(req, res, next) {
   if (isLastReservationTime) {
     return sendError("'reservation_time' field: reservation must be made at least an hour before closing (10:30PM)");
   }
+
+  console.log("Reserved Date:", reservedDate);
+  console.log("Day:", reservedDate.getUTCDay());
+
 
   next();
 };
