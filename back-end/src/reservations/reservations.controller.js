@@ -130,10 +130,6 @@ async function validateDate(req, res, next) {
     return sendError("'reservation_time' field: reservation must be made at least an hour before closing (10:30PM)");
   }
 
-  console.log("Reserved Date:", reservedDate);
-  console.log("Day:", reservedDate.getUTCDay());
-
-
   next();
 };
 
@@ -148,7 +144,30 @@ async function create(req, res) {
   res.status(201).json({ data: response[0] });
 };
 
+/**
+ * 
+ */
+async function reservationExists(req, res, next) {
+  const reservation = await service.read(req.params.reservation_id);
+
+  if (reservation) {
+      res.locals.reservation = reservation;
+      return next();
+  }
+  next({ status: 404, message: `Reservaiton cannot be found.` });
+};
+
+/**
+ * Read function to return reservation details.
+ * It sends back the reservation object saved in res.locals.reservation as JSON.
+ */
+async function read(req, res) {
+  res.json({ data: res.locals.reservation });
+  
+};
+
 module.exports = {
   list: [asyncErrorBoundary(list)],
   create: [asyncErrorBoundary(validateData), asyncErrorBoundary(validateDate), asyncErrorBoundary(validateReservation), asyncErrorBoundary(create)],
+  read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
 };
