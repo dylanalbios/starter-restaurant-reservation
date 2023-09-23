@@ -29,6 +29,13 @@ function list(date, mobile_number) {
       return knex("reservations").select("*");
     };
 
+/**
+ * Fetches a reservation by its ID.
+ */
+function read (reservation_id) {
+    return knex(tableName).select("*").where({ reservation_id }).first();
+};
+
 
 /**
  * Create handler for reservation resources.
@@ -41,4 +48,5 @@ function create(reservation) {
 module.exports = {
     list,
     create,
+    read,
 }
