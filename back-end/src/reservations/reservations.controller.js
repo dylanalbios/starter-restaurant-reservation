@@ -154,7 +154,7 @@ async function reservationExists(req, res, next) {
       res.locals.reservation = reservation;
       return next();
   }
-  next({ status: 404, message: `Reservaiton cannot be found.` });
+  return next({ status: 404, message: `Reservation ${req.params.reservation_id} cannot be found` });
 };
 
 /**
