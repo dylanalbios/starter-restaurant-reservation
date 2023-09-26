@@ -10,8 +10,15 @@ function list() {
 };
 
 
+/**
+ * Create handler for tables.
+ * Inserts a new table into the database.
+ */
+function create(table) {
+    return knex(tableName).insert(table).returning(["capacity", "table_name"])
+};
 
 module.exports = {
     list,
-
+    create,
 }
