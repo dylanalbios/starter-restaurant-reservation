@@ -145,7 +145,7 @@ async function create(req, res) {
 };
 
 /**
- * 
+ * Checks to see if reservation already exists within the table.
  */
 async function reservationExists(req, res, next) {
   const reservation = await service.read(req.params.reservation_id);
