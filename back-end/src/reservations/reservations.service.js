@@ -45,8 +45,16 @@ function create(reservation) {
     return knex(tableName).insert(reservation).returning("*")
 };
 
+/**
+ * Updates reservation based on reservation_id
+ */
+function update(reservation_id, updatedReservation) {
+    return knex(tableName).where({ reservation_id }).update(updatedReservation).returning("*");
+};
+
 module.exports = {
     list,
     create,
     read,
+    update,
 }
