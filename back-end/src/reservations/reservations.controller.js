@@ -166,8 +166,31 @@ async function read(req, res) {
   
 };
 
+/**
+ * Updates the reservation and sends 200 if successful.
+ */
+async function update(req, res) {
+  const response = await service.update(res.locals.reservation.reservation_id, req.body.data);
+  res.status(200).json({ data: response[0] });
+};
+
 module.exports = {
   list: [asyncErrorBoundary(list)],
-  create: [asyncErrorBoundary(validateData), asyncErrorBoundary(validateDate), asyncErrorBoundary(validateReservation), asyncErrorBoundary(create)],
-  read: [asyncErrorBoundary(reservationExists), asyncErrorBoundary(read)],
+  create: [
+    asyncErrorBoundary(validateData), 
+    asyncErrorBoundary(validateDate), 
+    asyncErrorBoundary(validateReservation), 
+    asyncErrorBoundary(create)
+  ],
+  read: [
+    asyncErrorBoundary(reservationExists), 
+    asyncErrorBoundary(read)
+  ],
+  update: [
+    asyncErrorBoundary(reservationExists), 
+    asyncErrorBoundary(validateData), 
+    asyncErrorBoundary(validateDate), 
+    asyncErrorBoundary(validateReservation), 
+    asyncErrorBoundary(update)
+  ],
 };
