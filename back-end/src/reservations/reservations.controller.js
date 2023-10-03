@@ -174,6 +174,45 @@ async function update(req, res) {
   res.status(200).json({ data: response[0] });
 };
 
+/**
+ * Validates reservation status update.
+ */
+async function validateStatusUpdate(req, res, next) {
+  const validStatus = ["booked", "seated", "finished", "cancelled"];
+  const { status } = req.body.data;
+  const { reservation_id, status: currentStatus } = res.locals.reservation;
+
+  if (!status) {
+    return next({ status: 400, message: "Reservation must have a status" });
+  };
+
+  if (!validStatus.includes(status)) {
+    return next({ status: 400, message: `'${status}' is an invalid status` });
+  };
+
+  if (currentStatus === "finished") {
+    return next({ status: 400, message: "Cannot update finished reservation" });
+  };
+
+  if (currentStatus === "seated" && status === "seated") {
+    return next({ status: 400, message: "Reservation is already seated" });
+  }
+
+  next();
+};
+
+/**
+ * Updates reservation status.
+ */
+async function updateStatus(req, res) {
+  const { status } = req.body.data;
+  const { reservation_id } = res.locals.reservation;
+
+  const updatedStatus = await service.updateStatus(reservation_id, status);
+
+  res.status(200).json({ data: { status: updatedStatus[0] } });
+};
+
 module.exports = {
   list: [asyncErrorBoundary(list)],
   create: [
@@ -193,4 +232,10 @@ module.exports = {
     asyncErrorBoundary(validateReservation), 
     asyncErrorBoundary(update)
   ],
+  updateStatus: [
+    asyncErrorBoundary(validateData),
+    asyncErrorBoundary(reservationExists),
+    asyncErrorBoundary(validateStatusUpdate),
+    asyncErrorBoundary(updateStatus),
+  ]
 };
