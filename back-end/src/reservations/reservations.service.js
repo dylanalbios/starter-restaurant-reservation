@@ -52,9 +52,17 @@ function update(reservation_id, updatedReservation) {
     return knex(tableName).where({ reservation_id }).update(updatedReservation).returning("*");
 };
 
+/**
+ * Updates the status of the given reservation id.
+ */
+function updateStatus(reservation_id, status) {
+    return knex(tableName).where({ reservation_id }).update({ status: status }).returning("status");
+};
+
 module.exports = {
     list,
     create,
     read,
     update,
+    updateStatus,
 }
