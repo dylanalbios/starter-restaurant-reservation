@@ -72,7 +72,69 @@ async function create(req, res) {
     res.status(201).json({ data: response });
 };
 
+/**
+ * Checks if a table exists with the same table_id.
+ */
+async function tableExists(req, res, next) {
+    //console.log(req, "tableExists"); // THIS RUNS
+    const { table_id } = req.params;
+    const table = await service.read(table_id);
+
+    if (!table) {
+        return next({
+            status: 404,
+            message: `table_id '${table_id}' does not  exist`,
+        });
+    }
+
+    res.locals.table = table;
+    //console.log(table); // THIS RUNS
+    next();
+};
+
+/**
+ * Clears table and updates the reservation and table status
+ */
+async function clearTable(req, res) {
+    //console.log(req, "clearTable"); // THIS DOES NOT RUN
+    //console.log("clearTable called, res.locals.table:", res.locals.table); // THIS DOES NOT RUNv
+    const { reservation_id, table_id } = res.locals.table;
+    //console.log("rerservation_id", reservation_id); // THIS DOES NOT RUN
+    //console.log("table_id", table_id); // THIS DOES NOT RUN
+
+    await service.updateReservationStatus(reservation_id, "finished");
+    await service.freeTable(table_id);
+
+
+    res.status(200).json({ data: { status: "finished" } });
+};
+
+/**
+ * Checks if table is seated or not.
+ */
+async function validateSeatedTable(req, res, next) {
+    //console.log(req, "validateSeatedTable");  //THIS RUNS
+    if (res.locals.table.status !== "occupied") {
+        return next({
+            status: 400,
+            message: "table is not occupied",
+        });
+    }
+    //console.log(res.locals.table.status) // THIS DOES NOT RUN but does pass status 400
+
+    next();
+};
+
 module.exports = {
     list: [asyncErrorBoundary(list)],
-    create: [asyncErrorBoundary(validateData), asyncErrorBoundary(validateTable), asyncErrorBoundary(create)],
+    create: [
+        asyncErrorBoundary(validateData), 
+        asyncErrorBoundary(validateTable), 
+        asyncErrorBoundary(create)
+    ],
+    clearTable: [
+        asyncErrorBoundary(tableExists), 
+        asyncErrorBoundary(validateSeatedTable), 
+        asyncErrorBoundary(clearTable),
+    ],
 };

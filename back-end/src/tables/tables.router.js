@@ -14,9 +14,9 @@ router
     .post(controller.create)
     .all(methodNotAllowed);
 
-/*router
+router
     .route("/:table_id/seat")
-    .put(controller)
-    .all(methodNotAllowed);*/
+    .delete(controller.clearTable)
+    .all(methodNotAllowed);
 
 module.exports = router;
