@@ -14,7 +14,7 @@ function list() {
  * Inserts a new table into the database.
  */
 function create(table) {
-    return knex(tableName).insert(table).returning(["capacity", "table_name"])
+    return knex(tableName).insert(table).returning("*").then((createdRecord) => createdRecord[0]);
 };
 
 /**
@@ -22,6 +22,20 @@ function create(table) {
  */
 function read(table_id) {
     return knex(tableName).select("*").where({ table_id }).first();
+};
+
+/**
+ * Reads reservation id
+ */
+function readReservation(reservation_id) {
+    return knex("reservations").select("*").where({ reservation_id }).first();
+};
+
+/**
+ * Updates the table with the given table_id to set its status to 'free'
+ */
+function occupyTable(table_id, reservation_id) {
+    return knex(tableName).where({ table_id }).update({ reservation_id: reservation_id, status: "occupied"});
 };
 
 /**
@@ -43,6 +57,8 @@ module.exports = {
     list,
     create,
     read,
+    readReservation,
+    occupyTable,
     freeTable,
     updateReservationStatus,
 }
