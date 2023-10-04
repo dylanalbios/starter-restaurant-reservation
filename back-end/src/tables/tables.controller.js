@@ -65,9 +65,14 @@ async function validateTable(req, res, next) {
  * Create handler for table resources
  */
 async function create(req, res) {
-    req.body.data.status = "occupied";
+    if (req.body.data.reservation_id) {
+        req.body.data.status = "occupied";
+        await service.updateReservationStatus(req.body.data.reservation_id, "seated");
+    } else {
+        req.body.data.status = "free";
+    }
   
-    const [response] = await service.create(req.body.data);
+    const response = await service.create(req.body.data);
   
     res.status(201).json({ data: response });
 };
@@ -76,7 +81,6 @@ async function create(req, res) {
  * Checks if a table exists with the same table_id.
  */
 async function tableExists(req, res, next) {
-    //console.log(req, "tableExists"); // THIS RUNS
     const { table_id } = req.params;
     const table = await service.read(table_id);
 
@@ -88,23 +92,63 @@ async function tableExists(req, res, next) {
     }
 
     res.locals.table = table;
-    //console.log(table); // THIS RUNS
     next();
+};
+
+/**
+ *  Checks for valid status of 'tables' and 'reservations'.
+ *  Checks for valid capacity of table for the reservation.
+ */
+async function validateSeats(req, res, next) {
+    if (res.locals.table.status === "occupied") {
+        return next({
+            status: 400,
+            message: "This table is currently 'occupied'.",
+        })
+    };
+
+    if (res.locals.reservation.status === "seated") {
+        return next({
+            status: 400,
+            message: "This reservation is currently 'seated'.",
+        })
+    };
+
+    if (res.locals.table.capacity < res.locals.reservation.people) {
+        return next({
+            status: 400,
+            message: `This table does not have enough capacity for your reservation of ${res.locals.reservation.people} people.`,
+        })
+    };
+    next();
+};
+
+/**
+ * Changes the table status to occupied and the reservation status to seated.
+ */
+async function seatTable(req, res) {
+    await service.occupyTable(
+        res.locals.table.table_id,
+        res.locals.reservation.reservation_id
+    );
+
+    await service.updateReservationStatus(
+        res.locals.reservation.reservation_id, "seated"
+    );
+
+    res.status(200).json({ data: { status: "seated" } });
 };
 
 /**
  * Clears table and updates the reservation and table status
  */
 async function clearTable(req, res) {
-    //console.log(req, "clearTable"); // THIS DOES NOT RUN
-    //console.log("clearTable called, res.locals.table:", res.locals.table); // THIS DOES NOT RUNv
-    const { reservation_id, table_id } = res.locals.table;
-    //console.log("rerservation_id", reservation_id); // THIS DOES NOT RUN
-    //console.log("table_id", table_id); // THIS DOES NOT RUN
+    await service.updateReservationStatus(
+        res.locals.table.reservation_id, 
+        "finished"
+    );
 
-    await service.updateReservationStatus(reservation_id, "finished");
-    await service.freeTable(table_id);
-
+    await service.freeTable(res.locals.table.table_id);
 
     res.status(200).json({ data: { status: "finished" } });
 };
@@ -113,15 +157,40 @@ async function clearTable(req, res) {
  * Checks if table is seated or not.
  */
 async function validateSeatedTable(req, res, next) {
-    //console.log(req, "validateSeatedTable");  //THIS RUNS
     if (res.locals.table.status !== "occupied") {
         return next({
             status: 400,
             message: "table is not occupied",
         });
     }
-    //console.log(res.locals.table.status) // THIS DOES NOT RUN but does pass status 400
 
+    next();
+};
+
+
+
+/**
+ *  Validates that the reservation exists
+ */
+async function validateReservation(req, res, next) {
+    const { reservation_id } = req.body.data;
+
+    if (!reservation_id) {
+        return next({
+            status: 400,
+            message: "reservation_id field must be included"
+        });
+    };
+
+    const reservation = await service.readReservation(reservation_id);
+    if (!reservation) {
+        return next({
+            status: 404,
+            message: `reservation_id ${reservation_id} does not exist`
+        });
+    };
+
+    res.locals.reservation = reservation;
     next();
 };
 
@@ -130,7 +199,14 @@ module.exports = {
     create: [
         asyncErrorBoundary(validateData), 
         asyncErrorBoundary(validateTable), 
-        asyncErrorBoundary(create)
+        asyncErrorBoundary(create),
+    ],
+    seatTable: [
+        asyncErrorBoundary(validateData),
+        asyncErrorBoundary(tableExists),
+        asyncErrorBoundary(validateReservation),
+        asyncErrorBoundary(validateSeats),
+        asyncErrorBoundary(seatTable),
     ],
     clearTable: [
         asyncErrorBoundary(tableExists), 
