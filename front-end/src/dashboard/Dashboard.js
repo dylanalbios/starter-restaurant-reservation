@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { listReservations } from "../utils/api";
+import React from "react";
+import { useHistory } from "react-router";
+import { previous, next, today } from "../utils/date-time";
+import ReservationRow from "./ReservationRow";
 import ErrorAlert from "../layout/ErrorAlert";
+
 
 /**
  * Defines the dashboard page.
@@ -8,29 +11,63 @@ import ErrorAlert from "../layout/ErrorAlert";
  *  the date for which the user wants to view reservations.
  * @returns {JSX.Element}
  */
-function Dashboard({ date }) {
-  const [reservations, setReservations] = useState([]);
-  const [reservationsError, setReservationsError] = useState(null);
 
-  useEffect(loadDashboard, [date]);
 
-  function loadDashboard() {
-    const abortController = new AbortController();
-    setReservationsError(null);
-    listReservations({ date }, abortController.signal)
-      .then(setReservations)
-      .catch(setReservationsError);
-    return () => abortController.abort();
-  }
+function Dashboard({ date = today(), reservations = [], reservationsError, loadDashboard }) {
+  //console.log("Reservations in Dashboard:", reservations);
+  const history = useHistory();
 
+  const reservationsJSX = reservations.map((reservation) =>
+    <ReservationRow key={reservation.reservation_id} reservation={reservation} loadDashboard={loadDashboard} />
+  );
+
+
+  //navigate through the dates from the reservations
+  function handleDateChange({ target }) {
+    let newDate;
+    switch (target.name) {
+      case "previous":
+        newDate = previous(date);
+        break;
+      case "next":
+        newDate = next(date);
+        break;
+      default: //today
+      newDate = today();
+      break;
+    }
+    history.push(`/dashboard?date=${newDate}`);
+  };
+
+  
   return (
     <main>
       <h1>Dashboard</h1>
-      <div className="d-md-flex mb-3">
-        <h4 className="mb-0">Reservations for date</h4>
-      </div>
+
+      <h4 className="mb-0">Reservations for {date}</h4>
+
+      <button className="btn btn-secondary m-1" name="previous" onClick={handleDateChange}>Previous</button>
+      <button className="btn btn-primary m-1" name="today" onClick={handleDateChange}>Today</button>
+      <button className="btn btn-secondary m-1" name="next" onClick={handleDateChange}>Next</button>
+
       <ErrorAlert error={reservationsError} />
-      {JSON.stringify(reservations)}
+
+      <table className="table table-hover m-1">
+        <thead className="thead-light">
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">First Name</th>
+            <th scope="col">Last Name</th>
+            <th scope="col">Mobile Number</th>
+            <th scope="col">Date</th>
+            <th scope="col">Time</th>
+            <th scope="col">People</th>
+            <th scope="col">Status</th>
+            <th scope="col">Cancel</th>
+          </tr>
+        </thead>
+        <tbody>{reservationsJSX}</tbody>
+      </table>
     </main>
   );
 }
