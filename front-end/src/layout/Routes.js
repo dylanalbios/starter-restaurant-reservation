@@ -5,6 +5,7 @@ import { listReservations } from "../utils/api";
 import Dashboard from "../dashboard/Dashboard";
 import NotFound from "./NotFound";
 import { today } from "../utils/date-time";
+import NewReservation from "../reservations/NewReservation";
 
 /**
  * Defines all the routes for the application.
@@ -23,16 +24,19 @@ function Routes() {
   const query = useQuery();
   const date = query.get("date") || today();
 
+  useEffect(loadDashboard, [date]);
 
-  useEffect(() => {
+  function loadDashboard() {
     const abortController = new AbortController();
+
+    setReservationsError(null)
 
     listReservations({ date: date }, abortController.signal)
     .then(setReservations)
     .catch(setReservationsError);
 
     return () => abortController.abort();
-  }, [date]);
+  }
 
   return (
     <Switch>
@@ -47,6 +51,10 @@ function Routes() {
           reservationsError={reservationsError} 
           loadDashboard={() => setReservations([])} 
         />
+      </Route>
+
+      <Route path="/reservations/new">
+        <NewReservation loadDashboard={loadDashboard}/>
       </Route>
 
       <Route>
