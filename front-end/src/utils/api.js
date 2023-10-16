@@ -67,3 +67,34 @@ export async function listReservations(params, signal) {
     .then(formatReservationDate)
     .then(formatReservationTime);
 }
+
+/**
+ * 
+ * @param {*} reservation 
+ * @param {*} signal 
+ * @returns 
+ */
+
+export async function createReservation(reservation, signal) {
+  const url = `${API_BASE_URL}/reservations`;
+
+  const body = JSON.stringify({ data: reservation });
+
+  return await fetchJson(url, { headers, signal, method: "POST", body }, []);
+}
+
+/**
+ * 
+ * @param {*} reservation_id 
+ * @param {*} reservation 
+ * @param {*} signal 
+ * @returns 
+ */
+
+export async function editReservation(reservation_id, reservation, signal) {
+  const url = `${API_BASE_URL}/reservations/:reservation_id`;
+
+  const body = JSON.stringify({ data: reservation });
+
+  return await fetchJson(url, { headers, signal, method: "PUT", body }, []);
+}
