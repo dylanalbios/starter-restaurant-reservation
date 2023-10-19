@@ -1,7 +1,9 @@
 import React from "react";
+import { updateReservationStatus } from "../utils/api";
+import { Link } from "react-router-dom/cjs/react-router-dom.min";
 
 
-function ReservationRow({ reservation, loadDashboard }) {
+export default function ReservationRow({ reservation, loadDashboard }) {
   
   //console.log("Reservation in ReservationRow:", reservation);
   //console.log("Status for Reservation:", reservation.status);
@@ -22,13 +24,17 @@ function ReservationRow({ reservation, loadDashboard }) {
   if (!reservation || status === "finished") return null;
 
 
-  /*function handleCancel(){
+  function handleCancel(){
     if (window.confirm("Do you want to cancel this reservation? This action cannot be undone.")) {
       const abortController = new AbortController();
 
+      updateReservationStatus(reservation_id, "cancelled", abortController.signal)
+        .then(loadDashboard);
+
+        return () => abortController.abort();
       
     }
-  };*/
+  };
 
 
   return (
@@ -41,20 +47,30 @@ function ReservationRow({ reservation, loadDashboard }) {
       <td>{reservation_time.substr(0, 5)}</td>
       <td>{people}</td>
       <td data-reservation-id-status={reservation_id}>{status}</td>
-      {status === "booked" &&
+      {status === "booked" && (
+        <>
+        <td>
+          <Link to={`/reservations/${reservation_id}/edit`}>
+            <button className="btn btn-secondary" type="button">Edit</button>
+          </Link>
+        </td>
         <td>
           <button
             className="btn btn-danger"
             type="button"
-            //onClick={handleCancel}
-            data-reservaion-id-cancel={reservation_id}
+            onClick={handleCancel}
+            data-reservation-id-cancel={reservation_id}
           >
             Cancel
           </button>
         </td>
-      }
+        <td>
+          <Link to={`/reservations/${reservation_id}/seat`}>
+            <button className="btn btn-primary" type="button">Seat</button>
+          </Link>
+        </td>
+        </>
+      )}
     </tr>
   );
 };
-
-export default ReservationRow;
