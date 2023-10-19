@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
 import useQuery from "../utils/useQuery" 
-import { listReservations } from "../utils/api";
+import { listReservations, listTables } from "../utils/api";
 import Dashboard from "../dashboard/Dashboard";
 import NotFound from "./NotFound";
 import { today } from "../utils/date-time";
@@ -19,6 +19,8 @@ import NewReservation from "../reservations/NewReservation";
 function Routes() {
   const [reservations, setReservations] = useState([]);
   const [reservationsError, setReservationsError] = useState(null);
+  const [tables, setTables] = useState([]);
+  const [tablesError, setTablesError] = useState(null);
 
 
   const query = useQuery();
@@ -35,6 +37,11 @@ function Routes() {
     .then(setReservations)
     .catch(setReservationsError);
 
+    listTables(abortController.signal)
+      .then((tables) => tables.sort((tableA, tableB) => tableA.table_name - tableB.table_name))
+      .then(setTables)
+      .catch(setTablesError);
+
     return () => abortController.abort();
   }
 
@@ -49,12 +56,18 @@ function Routes() {
           date={date} 
           reservations={reservations} 
           reservationsError={reservationsError} 
-          loadDashboard={() => setReservations([])} 
+          tables={tables}
+          tablesError={tablesError}
+          loadDashboard={loadDashboard} 
         />
       </Route>
 
       <Route path="/reservations/new">
         <NewReservation loadDashboard={loadDashboard}/>
+      </Route>
+
+      <Route path="/reservations/:reservation_id/edit">
+        <NewReservation loadDashboard={loadDashboard} edit={true} />
       </Route>
 
       <Route>
