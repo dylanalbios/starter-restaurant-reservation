@@ -2,6 +2,7 @@ import React from "react";
 import { useHistory } from "react-router";
 import { previous, next, today } from "../utils/date-time";
 import ReservationRow from "./ReservationRow";
+import TableRow from "./TableRow";
 import ErrorAlert from "../layout/ErrorAlert";
 
 
@@ -13,12 +14,23 @@ import ErrorAlert from "../layout/ErrorAlert";
  */
 
 
-function Dashboard({ date = today(), reservations = [], reservationsError, loadDashboard }) {
+function Dashboard({ 
+    date = today(), 
+    reservations = [], 
+    reservationsError, 
+    tables = [],
+    tablesError,
+    loadDashboard,
+  }) {
   //console.log("Reservations in Dashboard:", reservations);
   const history = useHistory();
 
   const reservationsJSX = reservations.map((reservation) =>
     <ReservationRow key={reservation.reservation_id} reservation={reservation} loadDashboard={loadDashboard} />
+  );
+
+  const tablesJSX = tables.map((table) =>
+    <TableRow key={table.table_id} table={table} loadDashboard={loadDashboard} />
   );
 
 
@@ -63,11 +75,29 @@ function Dashboard({ date = today(), reservations = [], reservationsError, loadD
             <th scope="col">Time</th>
             <th scope="col">People</th>
             <th scope="col">Status</th>
+            <th scope="col">Edit</th>
             <th scope="col">Cancel</th>
+            <th scope="col">Seat</th>
           </tr>
         </thead>
         <tbody>{reservationsJSX}</tbody>
       </table>
+
+      <ErrorAlert error={tablesError} />
+
+      <table className="table table-hover m-1">
+        <thead className="thead-light">
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Table Name</th>
+            <th scope="col">Capacity</th>
+            <th scope="col">Status</th>
+            <th scope="col">Reservation ID</th>
+          </tr>
+        </thead>
+        <tbody>{tablesJSX}</tbody>
+      </table>
+
     </main>
   );
 }
