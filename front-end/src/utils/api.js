@@ -92,9 +92,41 @@ export async function createReservation(reservation, signal) {
  */
 
 export async function editReservation(reservation_id, reservation, signal) {
-  const url = `${API_BASE_URL}/reservations/:reservation_id`;
+  const url = `${API_BASE_URL}/reservations/${reservation_id}`;
 
   const body = JSON.stringify({ data: reservation });
 
   return await fetchJson(url, { headers, signal, method: "PUT", body }, []);
+}
+
+/**
+ * 
+ * @param {*} reservation_id 
+ * @param {*} status 
+ * @param {*} signal 
+ * @returns 
+ */
+
+export async function updateReservationStatus(reservation_id, status, signal) {
+  const url = `${API_BASE_URL}/reservations/${reservation_id}/status`;
+
+  const body = JSON.stringify({ data: { status: status }});
+
+  return await fetchJson(url, { headers, signal, method: "PUT", body }, []);
+}
+
+/**
+ * 
+ * @param {*} params 
+ * @param {*} signal 
+ * @returns 
+ */
+
+export async function listTables(params, signal) {
+  const url = `${API_BASE_URL}/tables`;
+
+  Object.entries(params).forEach(([key, value]) =>
+    url.searchParams.append(key, value.toString())
+  );
+  return await fetchJson(url, { headers, signal }, [])
 }
