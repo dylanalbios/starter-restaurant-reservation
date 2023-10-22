@@ -25,4 +25,9 @@ router
     .put(controller.updateStatus)
     .all(methodNotAllowed);
 
+router
+    .route("/new")
+    .post(controller.create)
+    .all(methodNotAllowed);
+
 module.exports = router;
