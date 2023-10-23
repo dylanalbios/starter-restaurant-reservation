@@ -93,6 +93,7 @@ function Dashboard({
             <th scope="col">Capacity</th>
             <th scope="col">Status</th>
             <th scope="col">Reservation ID</th>
+            <th scope="col">Finish</th>
           </tr>
         </thead>
         <tbody>{tablesJSX}</tbody>
