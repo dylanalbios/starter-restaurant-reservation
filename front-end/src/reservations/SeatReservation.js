@@ -35,7 +35,7 @@ export default function SeatReservation ({ loadDashboard, tables }) {
         const abortController = new AbortController();
         const seatingErrors = validateSeat(table_id);
         if (seatingErrors.length === 0) {
-            seatTable(reservation_id, table_id, abortController.signal)
+            seatTable(reservation_id, Number(table_id), abortController.signal)
                 .then(loadDashboard)
                 .then(() => history.push("/dashboard"))
                 .catch(setApiError);
