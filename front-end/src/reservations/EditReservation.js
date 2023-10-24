@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
-import { today, formatAsTime } from "../utils/date-time";
-import { createReservation } from "../utils/api";
+import { useHistory, useParams } from "react-router-dom";
+import { editReservation, listReservations } from "../utils/api";
 import ErrorAlert from "../layout/ErrorAlert";
 import ReservationForm from "./ReservationForm";
 
 
 
-export default function NewReservation({ loadDashboard, edit }) {
+export default function EditReservation({ loadDashboard }) {
   const history = useHistory();
+  const { reservation_id } = useParams();
 
   const [errors, setErrors] = useState([]);
   const [reservationError, setReservationError] = useState(null);
@@ -18,10 +18,49 @@ export default function NewReservation({ loadDashboard, edit }) {
     first_name: "",
     last_name: "",
     mobile_number: "",
-    reservation_date: today(),
-    reservation_time: formatAsTime(new Date().toTimeString()),
+    reservation_date: "",
+    reservation_time: "",
     people: 1,
   });
+
+
+  useEffect(() => {
+    if (!reservation_id) return null;
+
+    loadReservations()
+        .then((response) =>
+            response.find(
+                (reservation) =>
+                    reservation.reservation_id === Number(reservation_id)
+            )
+        )
+        .then(fillFields)
+        .catch(error => setReservationError(error));
+
+    function fillFields(foundReservation) {
+        if (!foundReservation || foundReservation.status !== "booked") {
+            return <p>Only booked reservations can be edited.</p>;
+        }
+
+
+      setFormData({
+        first_name: foundReservation.first_name,
+        last_name: foundReservation.last_name,
+        mobile_number: foundReservation.mobile_number,
+        reservation_date: foundReservation.reservation_date,
+        reservation_time: foundReservation.reservation_time,
+        people: foundReservation.people,
+      });
+    }
+
+    async function loadReservations() {
+      const abortController = new AbortController();
+
+      return await listReservations(abortController.signal).catch(
+        setReservationError
+      );
+    }
+  }, [reservation_id]);
 
 
   function handleSubmit(event) {
@@ -31,12 +70,12 @@ export default function NewReservation({ loadDashboard, edit }) {
     const foundErrors = validateFields().concat(validateDate());
 
     if (foundErrors.length === 0) {
-        createReservation( formData, abortController.signal)
-          .then(loadDashboard)
-          .then(() => 
-            history.push(`/dashboard?date=${formData.reservation_date}`)
-          )
-          .catch(setApiError);
+        editReservation(reservation_id, formData, abortController.signal)
+            .then(loadDashboard)
+            .then(() => 
+                history.push(`/dashboard?date=${formData.reservation_date}`)
+            )
+            .catch(setApiError);
     } else {
       setErrors(foundErrors);
     }
