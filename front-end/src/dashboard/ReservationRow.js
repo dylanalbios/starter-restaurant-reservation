@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { updateReservationStatus } from "../utils/api";
 import { Link } from "react-router-dom/cjs/react-router-dom.min";
 
@@ -19,6 +19,8 @@ export default function ReservationRow({ reservation, loadDashboard }) {
     status 
   } = reservation;
 
+  const [apiError, setApiError] = useState(null);
+
 
   // Don't return the reservation if it's finished or it doesn't exist
   if (!reservation || status === "finished") return null;
@@ -29,7 +31,8 @@ export default function ReservationRow({ reservation, loadDashboard }) {
       const abortController = new AbortController();
 
       updateReservationStatus(reservation_id, "cancelled", abortController.signal)
-        .then(loadDashboard);
+        .then(loadDashboard)
+        .catch(error => setApiError(`Failed to cancel reservation: ${error.message}`));
 
         return () => abortController.abort();
       
@@ -39,6 +42,7 @@ export default function ReservationRow({ reservation, loadDashboard }) {
 
   return (
     <tr>
+      {apiError && <td colSpan="11"><div className="alert alert-danger">{apiError}</div></td>}
       <th scope="row">{reservation_id}</th>
       <td>{first_name}</td>
       <td>{last_name}</td>

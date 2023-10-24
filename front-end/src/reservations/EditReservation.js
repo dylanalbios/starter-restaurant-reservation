@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { editReservation, listReservations } from "../utils/api";
-import ErrorAlert from "../layout/ErrorAlert";
 import ReservationForm from "./ReservationForm";
 
 
@@ -25,6 +24,8 @@ export default function EditReservation({ loadDashboard }) {
 
 
   useEffect(() => {
+    const abortController = new AbortController();
+
     if (!reservation_id) return null;
 
     loadReservations()
@@ -60,6 +61,8 @@ export default function EditReservation({ loadDashboard }) {
         setReservationError
       );
     }
+
+    return () => abortController.abort();
   }, [reservation_id]);
 
 
@@ -75,7 +78,9 @@ export default function EditReservation({ loadDashboard }) {
             .then(() => 
                 history.push(`/dashboard?date=${formData.reservation_date}`)
             )
-            .catch(setApiError);
+            .catch((error) => {
+                setApiError(`Failed to edit reservation: ${error.message}`);
+            });
     } else {
       setErrors(foundErrors);
     }

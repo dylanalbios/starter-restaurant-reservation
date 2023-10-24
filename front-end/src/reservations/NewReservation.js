@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useHistory } from "react-router-dom";
 import { today, formatAsTime } from "../utils/date-time";
 import { createReservation } from "../utils/api";
-import ErrorAlert from "../layout/ErrorAlert";
 import ReservationForm from "./ReservationForm";
 
 
@@ -11,7 +10,6 @@ export default function NewReservation({ loadDashboard }) {
   const history = useHistory();
 
   const [errors, setErrors] = useState([]);
-  const [reservationError, setReservationError] = useState(null);
   const [apiError, setApiError] = useState(null);
 
   const [formData, setFormData] = useState({ 
@@ -23,10 +21,14 @@ export default function NewReservation({ loadDashboard }) {
     people: 1,
   });
 
+  const abortController = useMemo(() => new AbortController(), []);
+
+  useEffect(() => {
+    return () => abortController.abort();
+  }, [abortController]);
 
   function handleSubmit(event) {
     event.preventDefault();
-    const abortController = new AbortController();
 
     const foundErrors = validateFields().concat(validateDate());
 
@@ -36,7 +38,9 @@ export default function NewReservation({ loadDashboard }) {
           .then(() => 
             history.push(`/dashboard?date=${formData.reservation_date}`)
           )
-          .catch(setApiError);
+          .catch((error) => {
+            setApiError(`Failed to create reservation: ${error.message}`);
+          });
     } else {
       setErrors(foundErrors);
     }
@@ -110,7 +114,6 @@ export default function NewReservation({ loadDashboard }) {
       errors={errors}
       apiError={apiError}
       history={history}
-      reservationError={reservationError}
     />
   );
 }

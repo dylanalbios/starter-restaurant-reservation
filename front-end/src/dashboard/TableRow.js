@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { finishTable } from "../utils/api";
 
 export default function TableRow({ table, loadDashboard}) {
@@ -10,24 +10,29 @@ export default function TableRow({ table, loadDashboard}) {
         reservation_id,
     } = table;
 
+    const [error, setError] = useState(null);
+
     // Don't return the table if it's finished or doesn't exist.
     if (!table) return null;
 
     async function handleTableFinish() {
+        const abortController = new AbortController();
         if (window.confirm("Is this table ready to seat new guests? This action cannot be undone.")) {
             try {
-                const abortController = new AbortController();
                 await finishTable(table.table_id, abortController.signal);
-                loadDashboard(); // ensure this function refreshes the data correctly
+                loadDashboard();
             } catch (error) {
                 console.error("Error finishing table:", error);
+                setError(error.message)
             }
         }
+        return () => abortController.abort();
     }
 
 
     return (
         <tr>
+            {error && <td colSpan="6"><div className="alert alert-danger">{error}</div></td>}
             <th scope="row">{table_id}</th>
             <td>{table_name}</td>
             <td>{capacity}</td>

@@ -40,7 +40,7 @@ export default function SeatReservation ({ loadDashboard, tables }) {
                 .then(() => history.push("/dashboard"))
                 .catch(setApiError);
         }   else {
-            setErrors(seatingErrors);
+            setErrors(seatingErrors.map(error => ({ message: error })));
         }
         return () => abortController.abort();
     };

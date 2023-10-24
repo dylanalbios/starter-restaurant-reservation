@@ -19,7 +19,10 @@ export default function ReservationForm({
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={(event) => {
+            event.preventDefault();
+            handleSubmit();
+        }}>
 
         {/* Display Errors */}
         {errors.map((error, index) => (
@@ -105,7 +108,6 @@ export default function ReservationForm({
         <button 
             className="btn btn-primary m-1"
             type="submit"
-            onClick={handleSubmit}
         >
             Submit
         </button>
