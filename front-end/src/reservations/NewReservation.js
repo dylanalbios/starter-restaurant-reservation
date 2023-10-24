@@ -7,7 +7,7 @@ import ReservationForm from "./ReservationForm";
 
 
 
-export default function NewReservation({ loadDashboard, edit }) {
+export default function NewReservation({ loadDashboard }) {
   const history = useHistory();
 
   const [errors, setErrors] = useState([]);
