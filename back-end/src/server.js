@@ -5,7 +5,7 @@ const knex = require("./db/connection");
 const cors = require("cors");
 
 const allowedOrigins = [
-  "https://starter-restaurant-reservation-i7cmxsao2-dylanalbios.vercel.app"
+  "https://starter-restaurant-reservation-dylanalbios.vercel.app"
 ];
 
 const corsOptions = {
