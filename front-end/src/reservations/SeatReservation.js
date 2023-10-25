@@ -14,9 +14,10 @@ export default function SeatReservation ({ loadDashboard, tables }) {
     const [reservations, setReservations] = useState([]);
     const [table_id, setTableId] = useState(0);
     
-
+    // Fetch reservations on component mount
     useEffect(fetchReservations, []);
 
+    // Function to fetch reservations
     function fetchReservations() {
         const abortController = new AbortController();
         setReservationsError(null);
@@ -26,10 +27,12 @@ export default function SeatReservation ({ loadDashboard, tables }) {
         return () => abortController.abort();
     };
 
+    // Handle input changes for the form
     function handleInputChange({ target }) {
         setTableId(Number(target.value));
     };
 
+    // Handle form submission
     function handleSubmit(event) {
         event.preventDefault();
         const abortController = new AbortController();
@@ -45,6 +48,7 @@ export default function SeatReservation ({ loadDashboard, tables }) {
         return () => abortController.abort();
     };
 
+    // Function to validate seat selection
     function validateSeat(selectedTableId) {
         const foundErrors = [];
 
@@ -71,11 +75,12 @@ export default function SeatReservation ({ loadDashboard, tables }) {
         return foundErrors;
     }
 
-
+    // Identify the current reservation from the list
     const currentReservation = reservations.find(
         (reservation) => reservation.reservation_id === Number(reservation_id)
     );
 
+    // Extract the number of people from the current reservation
     const numberOfPeople = currentReservation ? currentReservation.people : null;
 
     return (

@@ -3,6 +3,7 @@ import { useHistory } from "react-router-dom";
 import { today, formatAsTime } from "../utils/date-time";
 import { createReservation } from "../utils/api";
 import ReservationForm from "./ReservationForm";
+import ErrorAlert from "../layout/ErrorAlert";
 
 
 
@@ -21,8 +22,10 @@ export default function NewReservation({ loadDashboard }) {
     people: 1,
   });
 
+  // Initialize abort controller using useMemo
   const abortController = useMemo(() => new AbortController(), []);
 
+  // Abort any pending API requests when comonent unmounts
   useEffect(() => {
     return () => abortController.abort();
   }, [abortController]);
@@ -32,6 +35,7 @@ export default function NewReservation({ loadDashboard }) {
 
     const foundErrors = validateFields().concat(validateDate());
 
+    // If no errors are found, create the reservation
     if (foundErrors.length === 0) {
         createReservation( formData, abortController.signal)
           .then(loadDashboard)
@@ -49,7 +53,7 @@ export default function NewReservation({ loadDashboard }) {
   };
 
 
-
+  // Validates individual form fields
   function validateFields() {
     const foundErrors = [];
     for (const field in formData) {
@@ -63,7 +67,7 @@ export default function NewReservation({ loadDashboard }) {
   };
 
 
-
+  // Validates the reservation data and time
   function validateDate() {
     const foundErrors = [];
     const reservedDate = new Date(
@@ -107,13 +111,21 @@ export default function NewReservation({ loadDashboard }) {
 
 
   return (
-    <ReservationForm
-      formData={formData}
-      setFormData={setFormData}
-      handleSubmit={handleSubmit}
-      errors={errors}
-      apiError={apiError}
-      history={history}
-    />
+    <> 
+    {apiError ? <ErrorAlert message={apiError} /> : null}
+
+    {errors.map((error, index) => (
+      <ErrorAlert key={index} message={error.message} />
+    ))}
+
+      <ReservationForm
+        formData={formData}
+        setFormData={setFormData}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        apiError={apiError}
+        history={history}
+      />
+    </>
   );
 }

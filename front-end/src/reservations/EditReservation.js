@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import { editReservation, listReservations } from "../utils/api";
 import ReservationForm from "./ReservationForm";
+import ErrorAlert from "../layout/ErrorAlert";
 
 
 
@@ -62,6 +63,7 @@ export default function EditReservation({ loadDashboard }) {
       );
     }
 
+    // Cleanup: Abort any pending API requests
     return () => abortController.abort();
   }, [reservation_id]);
 
@@ -72,6 +74,7 @@ export default function EditReservation({ loadDashboard }) {
 
     const foundErrors = validateFields().concat(validateDate());
 
+    // If no errors are found, proceed to edit reservation
     if (foundErrors.length === 0) {
         editReservation(reservation_id, formData, abortController.signal)
             .then(loadDashboard)
@@ -89,7 +92,7 @@ export default function EditReservation({ loadDashboard }) {
   };
 
 
-
+  // Validates indidvidual form fields
   function validateFields() {
     const foundErrors = [];
     for (const field in formData) {
@@ -103,7 +106,7 @@ export default function EditReservation({ loadDashboard }) {
   };
 
 
-
+  // Validates the reservation date and time
   function validateDate() {
     const foundErrors = [];
     const reservedDate = new Date(
@@ -147,14 +150,24 @@ export default function EditReservation({ loadDashboard }) {
 
 
   return (
-    <ReservationForm
-      formData={formData}
-      setFormData={setFormData}
-      handleSubmit={handleSubmit}
-      errors={errors}
-      apiError={apiError}
-      history={history}
-      reservationError={reservationError}
-    />
+    <>
+      {apiError ? <ErrorAlert message={apiError} /> : null}
+
+      {errors.map((error, index) => (
+        <ErrorAlert key={index} message={error.message} />
+      ))}
+
+      {reservationError ? <ErrorAlert message={reservationError} /> : null}
+
+      <ReservationForm
+        formData={formData}
+        setFormData={setFormData}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        apiError={apiError}
+        history={history}
+        reservationError={reservationError}
+      />
+    </>
   );
 }

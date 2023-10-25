@@ -1,15 +1,13 @@
 import React from "react";
-import ErrorAlert from "../layout/ErrorAlert";
 
 export default function ReservationForm({ 
     formData, 
     setFormData, 
     handleSubmit, 
-    errors, 
-    apiError ,
     history,
-    reservationError
 }) {
+
+    // Handle changes in the input and update formData
     function handleInputChange({ target }) {
         setFormData({
             ...formData,
@@ -18,18 +16,12 @@ export default function ReservationForm({
         });
     };
 
+    // Render the wform
     return (
         <form onSubmit={(event) => {
             event.preventDefault();
             handleSubmit();
         }}>
-
-        {/* Display Errors */}
-        {errors.map((error, index) => (
-            <ErrorAlert key={index} error={error} />
-        ))}
-        <ErrorAlert error={apiError} />
-        <ErrorAlert error={reservationError} />
 
         {/* Form */}
         <label className="form-label" htmlFor="first_name">First Name:</label>

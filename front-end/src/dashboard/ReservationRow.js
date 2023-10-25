@@ -4,9 +4,6 @@ import { Link } from "react-router-dom/cjs/react-router-dom.min";
 
 
 export default function ReservationRow({ reservation, loadDashboard }) {
-  
-  //console.log("Reservation in ReservationRow:", reservation);
-  //console.log("Status for Reservation:", reservation.status);
 
   const {
     reservation_id, 
