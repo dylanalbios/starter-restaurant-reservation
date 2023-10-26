@@ -20,7 +20,7 @@ export default function ReservationForm({
     return (
         <form onSubmit={(event) => {
             event.preventDefault();
-            handleSubmit();
+            handleSubmit(event);
         }}>
 
         {/* Form */}
