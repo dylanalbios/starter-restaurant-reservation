@@ -117,7 +117,7 @@ export default function NewReservation({ loadDashboard }) {
 
   return (
     <> 
-    {apiError ? <ErrorAlert message={apiError} /> : null}
+    {apiError ? <ErrorAlert error={apiError} /> : null}
 
     {errors.map((error, index) => (
       <ErrorAlert key={index} error={error} />

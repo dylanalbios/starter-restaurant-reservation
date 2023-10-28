@@ -102,19 +102,36 @@ export default function EditReservation({ loadDashboard }) {
         });
       }
     }
+    
+    if (!/^\d{10}$/.test(formData.mobile_number)) {
+      foundErrors.push({
+        message: "Mobile number must be 10 digits.",
+      })
+    }
+
     return foundErrors;
   };
 
+  // Specifically checks if reservation is on a tuesday
+  function tuesdayReservation(date, time) {
+    const [year, month, day] = date.split("-").map(Number);
+    const [hour, minute, second] = time.split(":").map(Number);
+
+    const reservedDate = new Date(year, month - 1, day, hour, minute, second);
+
+    return reservedDate.getDay() === 2;
+  }
 
   // Validates the reservation date and time
   function validateDate() {
     const foundErrors = [];
-    const reservedDate = new Date(
-      `${formData.reservation_date}T${formData.reservation_time}:00.000`
-    );
+    const { reservation_date, reservation_time} = formData;
+    const reservedDate = new Date(`${reservation_date}T${reservation_time}:00.000`)
     const todaysDate = new Date();
 
-    if (reservedDate.getDay() === 2) {
+    todaysDate.setHours(0, 0, 0, 0);
+
+    if (tuesdayReservation(reservation_date, reservation_time)) {
       foundErrors.push({
         message: "Reservation on a tuesday"
       });
@@ -151,13 +168,13 @@ export default function EditReservation({ loadDashboard }) {
 
   return (
     <>
-      {apiError ? <ErrorAlert message={apiError} /> : null}
+      {apiError ? <ErrorAlert error={apiError} /> : null}
 
       {errors.map((error, index) => (
-        <ErrorAlert key={index} message={error.message} />
+        <ErrorAlert key={index} error={error} />
       ))}
 
-      {reservationError ? <ErrorAlert message={reservationError} /> : null}
+      {reservationError ? <ErrorAlert error={reservationError} /> : null}
 
       <ReservationForm
         formData={formData}
