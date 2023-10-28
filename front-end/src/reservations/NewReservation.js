@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import { today, formatAsTime } from "../utils/date-time";
 import { createReservation } from "../utils/api";
@@ -22,13 +22,14 @@ export default function NewReservation({ loadDashboard }) {
     people: 1,
   });
 
-  // Initialize abort controller using useMemo
-  const abortController = useMemo(() => new AbortController(), []);
+  // useRef to handle the AbortController
+  const abortController = useRef(new AbortController());
 
   // Abort any pending API requests when comonent unmounts
   useEffect(() => {
-    return () => abortController.abort();
-  }, [abortController]);
+    const currentAbortController = abortController.current
+    return () => currentAbortController.abort();
+  }, []);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -48,8 +49,6 @@ export default function NewReservation({ loadDashboard }) {
     } else {
       setErrors(foundErrors);
     }
-
-    return () => abortController.abort();
   };
 
 
@@ -62,6 +61,12 @@ export default function NewReservation({ loadDashboard }) {
           message: `${field.split("_").join(" ")} must be filled in.`,
         });
       }
+    }
+
+    if (!/^\d{10}$/.test(formData.mobile_number)) {
+      foundErrors.push({
+        message: "Mobile number must be 10 digits.",
+      })
     }
     return foundErrors;
   };
@@ -115,7 +120,7 @@ export default function NewReservation({ loadDashboard }) {
     {apiError ? <ErrorAlert message={apiError} /> : null}
 
     {errors.map((error, index) => (
-      <ErrorAlert key={index} message={error.message} />
+      <ErrorAlert key={index} error={error} />
     ))}
 
       <ReservationForm
